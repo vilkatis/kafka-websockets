@@ -1,0 +1,5 @@
+<form class="actions" [formGroup]="addForm" (ngSubmit)="onAddFormSubmit()">
+  <label for="productName">Product name</label>
+  <input id="productName" type="text" formControlName="productName">
+  <button type="submit" [disabled]="!addForm.valid">Add product</button>
+</form>

@@ -1,6 +1,106 @@
----
-version: '2'
+version: '3'
 services:
+  reverse_proxy:
+    image: nginx
+    tty: true
+    user: ${UID?err}:${GID?err}
+    ports:
+      - 8080:80
+      - 3030:3000
+    depends_on:
+      - client
+      - server
+      - socket1
+      - socket2
+    volumes:
+      - ./reverse_proxy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+
+  client:
+    image: vilkatis/angular
+    container_name: ${CLIENT_HOST}
+    user: ${UID?err}:${GID?err}
+    entrypoint: /app/entrypoint.sh
+    tty: true
+    volumes:
+      - ./client:/app
+    depends_on:
+      - server
+      - socket1
+      - socket2
+    ports:
+      - ${CLIENT_PORT}:${CLIENT_PORT}
+    environment:
+      SERVER_HOST: ${SERVER_HOST}
+      SERVER_PORT: ${SERVER_PORT}
+
+  consumer:
+    image: vilkatis/ts-node
+    container_name: consumer
+    user: ${UID?err}:${GID?err}
+    entrypoint: /app/entrypoint.sh
+    tty: true
+    volumes:
+      - ./consumer:/app
+    depends_on:
+      - broker
+      - zookeeper
+
+  server:
+    image: vilkatis/ts-node
+    container_name: ${SERVER_HOST}
+    user: ${UID?err}:${GID?err}
+    entrypoint: /app/entrypoint.sh
+    tty: true
+    volumes:
+      - ./server:/app
+    depends_on:
+      - broker
+      - zookeeper
+    ports:
+      - ${SERVER_PORT}:${SERVER_PORT}
+    environment:
+      SERVER_PORT: ${SERVER_PORT}
+
+  socket1:
+    image: node
+    hostname: socket1
+    container_name: socket1
+    tty: true
+    user: ${UID?err}:${GID?err}
+    entrypoint: /app/entrypoint.sh
+    volumes:
+      - ./socket:/app
+    links:
+      - redis
+    ports:
+      - "3000:3000"
+
+  socket2:
+    image: node
+    hostname: socket2
+    container_name: socket2
+    entrypoint: /app/entrypoint.sh
+    tty: true
+    user: ${UID?err}:${GID?err}
+    volumes:
+      - ./socket:/app
+    links:
+      - redis
+    ports:
+      - "3001:3000"
+
+  redis:
+    image: redis
+    hostname: redis
+    container_name: redis
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - ./config/redis:/data
+    ports:
+      - "6379:6379"
+    expose:
+      - 6379
+
   zookeeper:
     image: confluentinc/cp-zookeeper:6.0.0
     hostname: zookeeper

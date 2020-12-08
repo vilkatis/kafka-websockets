@@ -1,0 +1,41 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.actions {
+  display: flex;
+  flex-direction: row;
+  height: 40px;
+}
+
+button,
+.button {
+  padding: 5px;
+  background: #243b55;
+  color: #FFF;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  cursor: pointer;
+  outline: none;
+  border: none;
+  user-select: none;
+  &:disabled,
+  &.disabled {
+    background: #ccc;
+    color: #333;
+    cursor: default;
+    pointer-events: none;
+  }
+}
+
+select, input {
+  width: 100%;
+  padding: 5px;
+  box-sizing: border-box;
+  outline: none;
+  border: 1px solid #444;
+}
+
